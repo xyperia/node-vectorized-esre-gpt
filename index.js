@@ -14,9 +14,9 @@ const ChatGPTKey = `${process.env.VTIGPTKEY}`;
 const ElasticURL = `${process.env.ELKURL}`;
 const ElasticUser = `${process.env.ELKUSER}`;
 const ElasticPassword = `${process.env.ELKPASS}`;
+const indexName = `${process.env.INDEXNAME}`;
+const modelType = `${process.env.MODELTYPE}`;
 
-// Elastic Search Application Name
-const indexName = 'search-virtusindonesia-website'
 
 // ChatGPT API URL
 const gptURL = 'https://api.openai.com/v1/chat/completions';
@@ -30,8 +30,20 @@ bot.on('message', async (msg) => {
 
   // Remove all return char
   const messageText = msg.text.replace(/[^a-zA-Z ]/g, "");
-  const fullQuery = `curl -s --location --request POST '${ElasticURL}/${indexName}/_search' -k -u ${ElasticUser}:${ElasticPassword} --header 'Authorization: apiKey ${ElasticAPIKey}' --header 'Content-Type: application/json' -d '{"query": { "nested": { "path": "passages", "query": { "text_expansion": { "passages.vector.predicted_value": { "model_id": ".elser_model_2_linux-x86_64", "model_text": "${messageText}" } } }, "inner_hits": { "_source": "false", "fields": [ "passages.text" ]}}}}'`;
+  let fullQuery;
+  let queryBody;
+  let promptCommand;
   
+  if(modelType == "elser"){
+    queryBody = `"query": { "nested": { "path": "passages", "query": { "text_expansion": { "passages.vector.predicted_value": { "model_id": ".elser_model_2_linux-x86_64", "model_text": "${messageText}" } } }, "inner_hits": { "_source": "false", "fields": [ "passages.text" ]}}}`;
+    promptCommand = `You are a helpful AI assistant who answers questions using the following supplied context. If you can't answer the question using this context say "I don't know"`;
+  }else{
+    queryBody = `"knn": { "field": "vector_embeddings.predicted_value", "query_vector_builder": { "text_embedding": { "model_id": ".multilingual-e5-small_linux-x86_64", "model_text": "${messageText}" }}, "k": 2, "num_candidates": 5}`;
+    promptCommand = `Kamu adalah AI Assisten yang hanya menjawab pertanyaan berdasarkan konteks berikut ini. Jika kamu tidak bisa menjawab pertanyaannya menggunakan konteks ini, cukup jawab "Saya tidak tahu"`;
+  }
+
+  fullQuery = `curl -s --location --request POST '${ElasticURL}/${indexName}/_search' -k -u ${ElasticUser}:${ElasticPassword} --header 'Authorization: apiKey ${ElasticAPIKey}' --header 'Content-Type: application/json' -d '{${queryBody}}'`;
+
   // console.log(fullQuery);
   // Send search request to Elastic App Search based on received message from Telegram
   exec(`${fullQuery}`, (error, stdout, stderr) => {
@@ -46,14 +58,16 @@ bot.on('message', async (msg) => {
 
     // console.log(JSON.parse(stdout).hits.hits[0]);
 
-    console.log(stdout, error, stderr);
+    // console.log(stdout, error, stderr);
 
     let prompt = `
-      You are a helpful AI assistant who answers questions using the following supplied context. If you can't answer the question using this context say "I don't know"
+      ${promptCommand}
 
-      Context: "${JSON.parse(stdout).hits.hits[0]._source.passages[0].text[0]}"
+      Context: "${JSON.parse(stdout).hits.hits[0]._source.passages[0].text}"
       Question: "${messageText}"
     `;
+
+    // console.log(`${JSON.parse(stdout).hits.hits[0]._source.passages[0].text}`);
 
     // jawab menggunakan teks berikut: ${JSON.parse(stdout).hits.hits[0]._source.content}.
 
