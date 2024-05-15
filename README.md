@@ -1,5 +1,7 @@
 ## Telegram ChatBot with ElasticSearch and ChatGPT Integration
 
+![image](https://github.com/xyperia/node-vectorized-esre-gpt/assets/37976747/7d799ddf-697d-40f2-9c6a-95fefcddde54)
+
 This Node.js application integrates a Telegram chatbot with ElasticSearch for search functionalities and utilizes ChatGPT for generating conversational responses. It fetches search results from ElasticSearch based on user queries received via Telegram, then prompts ChatGPT with contextual information to generate relevant responses.
 
 ### Setup Instructions
