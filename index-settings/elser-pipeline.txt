@@ -1,0 +1,70 @@
+[
+  {
+    "script": {
+      "lang": "painless",
+      "source": "String[] envSplit = /((?<!M(r|s|rs)\\.)(?<=\\.) |(?<=\\!) |(?<=\\?) )/.split(ctx['article_content']);\n          ctx['passages'] = new ArrayList();\n          int i = 0;\n          boolean remaining = true;\n          if (envSplit.length == 0) {\n            return\n          } else if (envSplit.length == 1) {\n            Map passage = ['text': envSplit[0]];ctx['passages'].add(passage)\n          } else {\n            while (remaining) {\n              Map passage = ['text': envSplit[i++]];\n              while (i < envSplit.length && passage.text.length() + envSplit[i].length() < params.model_limit) {passage.text = passage.text + ' ' + envSplit[i++]}\n              if (i == envSplit.length) {remaining = false}\n              ctx['passages'].add(passage)\n            }\n          }",
+      "params": {
+        "model_limit": 400
+      }
+    }
+  },
+  {
+    "foreach": {
+      "field": "passages",
+      "processor": {
+        "inference": {
+          "field_map": {
+            "_ingest._value.text": "text_field"
+          },
+          "model_id": ".elser_model_2_linux-x86_64",
+          "target_field": "_ingest._value.vector"
+        }
+      }
+    }
+  },
+  {
+    "rename": {
+      "field": "url_scheme",
+      "target_field": "http.protocol"
+    }
+  },
+  {
+    "rename": {
+      "field": "url_port",
+      "target_field": "http.port"
+    }
+  },
+  {
+    "rename": {
+      "field": "url_host",
+      "target_field": "http.domain"
+    }
+  },
+  {
+    "rename": {
+      "field": "title",
+      "target_field": "product_name"
+    }
+  },
+  {
+    "rename": {
+      "field": "url",
+      "target_field": "http.url"
+    }
+  },
+  {
+    "remove": {
+      "field": [
+        "links",
+        "headings",
+        "body_content",
+        "additional_urls",
+        "domains",
+        "url_path_dir2",
+        "url_path",
+        "url_path_dir1",
+        "url_path_dir3"
+      ]
+    }
+  }
+]

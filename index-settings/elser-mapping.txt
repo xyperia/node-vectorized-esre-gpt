@@ -1,0 +1,25 @@
+PUT search-virtusindonesia-id/_mapping
+{
+  "properties": {
+    "passages": {
+      "type": "nested",
+      "properties": {
+        "dense": {
+          "type": "dense_vector",
+          "index_options": {
+            "type": "int8_hnsw"
+          }
+        },
+        "vector.predicted_value": {
+          "type": "sparse_vector"
+        },
+        "text": {
+          "type": "text"
+        },
+        "model_id": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

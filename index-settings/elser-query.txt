@@ -1,0 +1,22 @@
+GET search-virtusindonesia-web/_search
+{
+  "query": {
+    "nested": {
+      "path": "passages",
+      "query": {
+        "text_expansion": {
+          "passages.vector.predicted_value": {
+            "model_id": ".elser_model_2_linux-x86_64",
+            "model_text": "What is Riverbed?"
+          }
+        }
+      },
+      "inner_hits": {
+        "_source": "false",
+        "fields": [
+          "passages.text"
+        ]
+      }
+    }
+  }
+}
