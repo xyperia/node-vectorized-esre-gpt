@@ -2,9 +2,26 @@
   {
     "script": {
       "lang": "painless",
-      "source": "String[] envSplit = /((?<!M(r|s|rs)\\.)(?<=\\.) |(?<=\\!) |(?<=\\?) )/.split(ctx['article_content']);\n          ctx['passages'] = new ArrayList();\n          int i = 0;\n          boolean remaining = true;\n          if (envSplit.length == 0) {\n            return\n          } else if (envSplit.length == 1) {\n            Map passage = ['text': envSplit[0]];ctx['passages'].add(passage)\n          } else {\n            while (remaining) {\n              Map passage = ['text': envSplit[i++]];\n              while (i < envSplit.length && passage.text.length() + envSplit[i].length() < params.model_limit) {passage.text = passage.text + ' ' + envSplit[i++]}\n              if (i == envSplit.length) {remaining = false}\n              ctx['passages'].add(passage)\n            }\n          }",
+      "source": """
+      String[] envSplit = /((?<!M(r|s|rs)\.)(?<=\.) |(?<=\!) |(?<=\?) )/.split(ctx['article_content']);
+          ctx['passages'] = new ArrayList();
+          int i = 0;
+          boolean remaining = true;
+          if (envSplit.length == 0) {
+            return
+          } else if (envSplit.length == 1) {
+            Map passage = ['text': envSplit[0]];ctx['passages'].add(passage)
+          } else {
+            while (remaining) {
+              Map passage = ['text': envSplit[i++]];
+              while (i < envSplit.length && passage.text.length() + envSplit[i].length() < params.model_limit) {passage.text = passage.text + ' ' + envSplit[i++]}
+              if (i == envSplit.length) {remaining = false}
+              ctx['passages'].add(passage)
+            }
+          }
+      """
       "params": {
-        "model_limit": 768
+        "model_limit": 400
       }
     }
   },
@@ -14,12 +31,13 @@
       "processor": {
         "inference": {
           "model_id": ".multilingual-e5-small_linux-x86_64",
-          "target_field": "vector_embeddings",
+          "target_field": "_ingest._value.vector",
           "field_map": {
-            "article_content": "text_field"
+            "_ingest._value.text": "text_field"
           }
         }
-      }
+      },
+      "ignore_failure": true
     }
   },
   {
@@ -42,12 +60,6 @@
   },
   {
     "rename": {
-      "field": "title",
-      "target_field": "product_name"
-    }
-  },
-  {
-    "rename": {
       "field": "url",
       "target_field": "http.url"
     }
@@ -55,15 +67,11 @@
   {
     "remove": {
       "field": [
-        "links",
-        "headings",
         "body_content",
         "additional_urls",
         "domains",
-        "url_path_dir2",
         "url_path",
         "url_path_dir1",
-        "url_path_dir3",
         "article_content"
       ]
     }

@@ -38,7 +38,7 @@ bot.on('message', async (msg) => {
     queryBody = `"query": { "nested": { "path": "passages", "query": { "text_expansion": { "passages.vector.predicted_value": { "model_id": ".elser_model_2_linux-x86_64", "model_text": "${messageText}" } } }, "inner_hits": { "_source": "false", "fields": [ "passages.text" ]}}}`;
     promptCommand = `You are a helpful AI assistant who answers questions using the following supplied context. If you can't answer the question using this context say "I don't know"`;
   }else{
-    queryBody = `"knn": { "field": "vector_embeddings.predicted_value", "query_vector_builder": { "text_embedding": { "model_id": ".multilingual-e5-small_linux-x86_64", "model_text": "${messageText}" }}, "k": 2, "num_candidates": 5}`;
+    queryBody = `"knn": { "field": "passages.vector.predicted_value", "query_vector_builder": { "text_embedding": { "model_id": ".multilingual-e5-small_linux-x86_64", "model_text": "${messageText}" }}, "k": 2, "num_candidates": 5}`;
     promptCommand = `Kamu adalah AI Assisten yang hanya menjawab pertanyaan berdasarkan konteks berikut ini. Jika kamu tidak bisa menjawab pertanyaannya menggunakan konteks ini, cukup jawab "Saya tidak tahu"`;
   }
 
@@ -80,8 +80,9 @@ bot.on('message', async (msg) => {
         // Convert the response to JSON object
         let gptResponse = JSON.parse(stdout2);
 
+        console.log(gptResponse);
         // Get only the response message
-        let chatReply = gptResponse.choices[0].message.content
+        let chatReply = gptResponse.choices[0].message.content;
 
         // Reply Telegram message with the response from ChatGPT
         bot.sendMessage(chatId, ''+chatReply);

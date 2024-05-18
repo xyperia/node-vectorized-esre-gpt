@@ -1,11 +1,11 @@
-GET search-virtusindonesia-id/_search
+GET search-vti-general-rules/_search
 {
   "knn": {
-    "field": "vector_embeddings.predicted_value",
+    "field": "passages.vector.predicted_value",
     "query_vector_builder": {
         "text_embedding": {
             "model_id": ".multilingual-e5-small_linux-x86_64",
-            "model_text": "Apakah Virtus Indonesia menjual Dell?"
+            "model_text": "Apa saja rules NOP?"
         }
     },
     "k": 2,

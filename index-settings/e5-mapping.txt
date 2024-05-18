@@ -1,4 +1,4 @@
-PUT search-virtusindonesia-web-id/_mapping
+PUT search-vti-general-rules/_mapping
 {
   "properties": {
     "id": {
@@ -7,12 +7,12 @@ PUT search-virtusindonesia-web-id/_mapping
     "language": {
       "type": "keyword"
     },
-    "passage": {
-      "type": "text"
+    "passages": {
+      "type": "nested"
     },
-    "passage_embedding.predicted_value": {
+    "vector.predicted_value": {
       "type": "dense_vector",
-      "dims": 768,
+      "dims": 384,
       "index": "true",
       "similarity": "cosine"
     }
